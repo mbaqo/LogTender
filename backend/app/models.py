@@ -1,10 +1,11 @@
 import uuid
-from datetime import date
+import datetime
 from enum import Enum as PyEnum
 from typing import Optional
 
-from sqlalchemy import Column, String, Enum as SQLEnum, UUID, ForeignKey, Table
+from sqlalchemy import Column, String, Enum as SQLEnum, UUID, ForeignKey, Table, DateTime, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.sql import func
 from .database import Base
 
 class UserRole(str, PyEnum):
@@ -55,7 +56,7 @@ class Student(Base):
     nickname: Mapped[Optional[str]] = mapped_column(String(100))
     profile_picture: Mapped[Optional[str]] = mapped_column(String(255))
 
-    date_of_birth: Mapped[date] = mapped_column()
+    date_of_birth: Mapped[datetime.date] = mapped_column()
     gender: Mapped[str] = mapped_column(String(20))
 
     medical_note: Mapped[Optional[str]] = mapped_column(String(350))
@@ -68,6 +69,7 @@ class Student(Base):
         secondary=guardian_student_association, 
         back_populates="students"
     )
+    attendance_logs: Mapped[list["AttendanceLog"]] = relationship(back_populates="student")
 
 class Guardian(Base):
     __tablename__ = "guardians"
@@ -88,3 +90,56 @@ class Guardian(Base):
         secondary=guardian_student_association, 
         back_populates="guardians"
     )
+    attendance_logs: Mapped[list["AttendanceLog"]] = relationship(back_populates="guardian")
+
+class Actions(str, PyEnum):
+    CHECK_IN = "in"
+    CHECK_OUT = "out"
+    ABSENT = "absent"
+
+class EntryTypes(str, PyEnum):
+    GUARDIAN = "guardian_pin"
+    PROVIDER= "provider_pin"
+
+class AttendanceLog(Base):
+    __tablename__ = "attendance_logs"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    
+    # Multi-tenancy
+    provider_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    student_id: Mapped[int] = mapped_column(ForeignKey("students.id"), index=True)
+    
+    # Which guardian performed the action (None if provider did it)
+    guardian_id: Mapped[Optional[int]] = mapped_column(ForeignKey("guardians.id"), index=True)
+
+    # 1. Audit Data
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), index=True
+    )
+    
+    # event_time: The actual time of arrival/departure
+    event_time: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), index=True
+    )
+
+    action: Mapped[Actions] = mapped_column(SQLEnum(Actions))
+    entry_type: Mapped[EntryTypes] = mapped_column(SQLEnum(EntryTypes), default=EntryTypes.GUARDIAN)
+    
+    # Snapshot of the person's name for historical accuracy
+    authorized_person_name: Mapped[str] = mapped_column(String(200))
+    
+    # 2. Compliance & Media
+    # URL to the signature image stored in cloud storage
+    guardian_signature_url: Mapped[Optional[str]] = mapped_column(String(512)) 
+    note: Mapped[Optional[str]] = mapped_column(Text)
+
+    # 3. The Audit Trail (Handling Edits)
+    is_void: Mapped[bool] = mapped_column(default=False)\
+    
+    # Points to original log if this is a correction
+    original_log_id: Mapped[Optional[int]] = mapped_column() 
+
+    # Relationships
+    student: Mapped["Student"] = relationship(back_populates="attendance_logs")
+    guardian: Mapped[Optional["Guardian"]] = relationship(back_populates="attendance_logs")
