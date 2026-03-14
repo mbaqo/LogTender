@@ -42,6 +42,11 @@ guardian_student_association = Table(
     Column("guardian_id", ForeignKey("guardians.id"), primary_key=True),
 )
 
+class Genders(str, PyEnum):
+    MALE = "Male"
+    FEMALE = "Female"
+    NA = "N/A"
+
 class Student(Base):
     __tablename__ = "students"
 
@@ -57,7 +62,7 @@ class Student(Base):
     profile_picture: Mapped[Optional[str]] = mapped_column(String(255))
 
     date_of_birth: Mapped[datetime.date] = mapped_column()
-    gender: Mapped[str] = mapped_column(String(20))
+    gender: Mapped[Genders] = mapped_column(SQLEnum(Genders), default = Genders.NA)
 
     medical_note: Mapped[Optional[str]] = mapped_column(String(350))
     state_id: Mapped[Optional[str]] = mapped_column(String(50))
