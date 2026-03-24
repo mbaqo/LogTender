@@ -8,10 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from .database import Base
 
-class UserRole(str, PyEnum):
-    ADMIN = "admin"
-    PROVIDER = "provider"
-    EMPLOYEE = "employee"
+from .enums import UserRole, Genders, Actions, EntryTypes
 
 class User(Base):
     __tablename__ = "users"
@@ -42,10 +39,6 @@ guardian_student_association = Table(
     Column("guardian_id", ForeignKey("guardians.id"), primary_key=True),
 )
 
-class Genders(str, PyEnum):
-    MALE = "Male"
-    FEMALE = "Female"
-    NA = "N/A"
 
 class Student(Base):
     __tablename__ = "students"
@@ -97,14 +90,6 @@ class Guardian(Base):
     )
     attendance_logs: Mapped[list["AttendanceLog"]] = relationship(back_populates="guardian")
 
-class Actions(str, PyEnum):
-    CHECK_IN = "in"
-    CHECK_OUT = "out"
-    ABSENT = "absent"
-
-class EntryTypes(str, PyEnum):
-    GUARDIAN = "guardian_pin"
-    PROVIDER= "provider_pin"
 
 class AttendanceLog(Base):
     __tablename__ = "attendance_logs"
