@@ -1,6 +1,5 @@
 import uuid
 import datetime
-from enum import Enum as PyEnum
 from typing import Optional
 
 from sqlalchemy import Column, String, Enum as SQLEnum, UUID, ForeignKey, Table, DateTime, Text
@@ -32,12 +31,15 @@ class User(Base):
 
     students: Mapped[list["Student"]] = relationship(back_populates="provider")
 
-guardian_student_association = Table(
-    "guardian_student_association",
-    Base.metadata,
-    Column("student_id", ForeignKey("students.id"), primary_key=True),
-    Column("guardian_id", ForeignKey("guardians.id"), primary_key=True),
-)
+class StudentGuardianLink(Base):
+    __tablename__ = "student_guardian_links"
+
+    student_id = mapped_column(ForeignKey("students.id"), primary_key=True)
+    guardian_id = mapped_column(ForeignKey("guardians.id"), primary_key=True)
+    relationship_to_student: Mapped[str] = mapped_column(String(50), nullable=False)
+
+    student: Mapped["Student"] = relationship(back_populates="guardian_links")
+    guardian: Mapped["Guardian"] = relationship(back_populates="student_links")
 
 
 class Student(Base):
@@ -63,9 +65,9 @@ class Student(Base):
     # Provider Relationshp=ip
     provider: Mapped["User"] = relationship(back_populates="students")
     # parents relationship
-    guardians: Mapped[list["Guardian"]] = relationship(
-        secondary=guardian_student_association, 
-        back_populates="students"
+    guardian_links: Mapped[list["StudentGuardianLink"]] = relationship( 
+        back_populates="student",
+        cascade="all, delete-orphan"
     )
     attendance_logs: Mapped[list["AttendanceLog"]] = relationship(back_populates="student")
 
@@ -77,16 +79,17 @@ class Guardian(Base):
 
     first_name: Mapped[str] = mapped_column(String(100))
     last_name: Mapped[str] = mapped_column(String(100))
+    profile_picture: Mapped[Optional[str]] = mapped_column(String(255))
 
-    phone_number: Mapped[str] = mapped_column(String(20), index=True)
+    phone_number: Mapped[Optional[str]] = mapped_column(String(20), index=True)
     email: Mapped[Optional[str]] = mapped_column(String(255), unique=True, index=True)
     hashed_pin: Mapped[str] = mapped_column(String(255))
 
     residential_address: Mapped[Optional[str]] = mapped_column(String(255))
 
-    students: Mapped[list["Student"]] = relationship(
-        secondary=guardian_student_association, 
-        back_populates="guardians"
+    student_links: Mapped[list["StudentGuardianLink"]] = relationship(
+        back_populates="guardian",
+        cascade="all, delete-orphan"
     )
     attendance_logs: Mapped[list["AttendanceLog"]] = relationship(back_populates="guardian")
 

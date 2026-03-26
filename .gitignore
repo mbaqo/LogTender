@@ -29,7 +29,8 @@ Thumbs.db
 *.swo
 
 # Notes
-gemini.md
+GEMINI.md
+AGENTS.md
 GIT_NOTES.md
 ROADMAP.md
 TECH_STACK.md
