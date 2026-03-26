@@ -2,6 +2,7 @@ import datetime
 import uuid
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic_extra_types.phone_numbers import PhoneNumber
 from typing import Optional
 
 from .enums import UserRole, Genders
@@ -75,7 +76,7 @@ class StudentUpdateMedicalNote(BaseModel):
 class GuardianBase(BaseModel):
     first_name: str = Field(min_length=1, max_length=50)
     last_name: str = Field(min_length=1, max_length=50)
-    phone_number: Optional[str] = Field(default=None, min_length=1, max_length=20)
+    phone_number: PhoneNumber
     profile_picture: Optional[str] = Field(default=None)
     email: Optional[EmailStr] = Field(default=None)
     residential_address: Optional[str] = Field(default=None, min_length=1, max_length=100)
@@ -91,7 +92,7 @@ class GuardianCreate(GuardianBase):
 class GuardianUpdate(BaseModel):
     first_name: Optional[str] = Field(default=None, min_length=1, max_length=50)
     last_name: Optional[str] = Field(default=None, min_length=1, max_length=50)
-    phone_number: Optional[str] = Field(default=None, min_length=1, max_length=20)
+    phone_number: Optional[PhoneNumber] = Field(default=None)
     email: Optional[EmailStr] = Field(default=None)
     residential_address: Optional[str] = Field(default=None, min_length=1, max_length=100)
 
@@ -113,7 +114,7 @@ class GuardianLite(BaseModel):
     public_id: uuid.UUID
     first_name: str = Field(min_length=1, max_length=50)
     last_name: str = Field(min_length=1, max_length=50)
-    phone_number: Optional[str] = Field(default=None, min_length=1, max_length=20)
+    phone_number: PhoneNumber
     profile_picture: Optional[str] = Field(default=None)
     model_config = ConfigDict(from_attributes=True)
 

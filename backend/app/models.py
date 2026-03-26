@@ -2,7 +2,7 @@ import uuid
 import datetime
 from typing import Optional
 
-from sqlalchemy import Column, String, Enum as SQLEnum, UUID, ForeignKey, Table, DateTime, Text
+from sqlalchemy import String, Enum as SQLEnum, UUID, ForeignKey, DateTime, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from .database import Base
@@ -81,7 +81,7 @@ class Guardian(Base):
     last_name: Mapped[str] = mapped_column(String(100))
     profile_picture: Mapped[Optional[str]] = mapped_column(String(255))
 
-    phone_number: Mapped[Optional[str]] = mapped_column(String(20), index=True)
+    phone_number: Mapped[str] = mapped_column(String(20), index=True)
     email: Mapped[Optional[str]] = mapped_column(String(255), unique=True, index=True)
     hashed_pin: Mapped[str] = mapped_column(String(255))
 
