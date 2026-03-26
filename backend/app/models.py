@@ -176,10 +176,10 @@ class AttendanceLog(Base):
     note: Mapped[Optional[str]] = mapped_column(Text)
 
     # 3. The Audit Trail (Handling Edits)
-    is_void: Mapped[bool] = mapped_column(default=False)\
+    is_void: Mapped[bool] = mapped_column(default=False)
     
     # Points to original log if this is a correction
-    original_log_id: Mapped[Optional[int]] = mapped_column() 
+    original_log_id: Mapped[Optional[int]] = mapped_column(ForeignKey("attendance_logs.id"))
 
     # Relationships
     student: Mapped["Student"] = relationship(back_populates="attendance_logs")
