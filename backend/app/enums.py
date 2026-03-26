@@ -18,3 +18,11 @@ class Actions(str, PyEnum):
 class EntryTypes(str, PyEnum):
     GUARDIAN = "guardian_pin"
     PROVIDER= "provider_pin"
+
+class ResetVerificationMethods(str, PyEnum):
+    SMS_OTP = "sms_otp"
+    EMAIL_OTP = "email_otp"
+
+class ResetStatuses(str, PyEnum):
+    PENDING = "pending"
+    VERIFIED = "verified"
