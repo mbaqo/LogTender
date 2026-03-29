@@ -9,26 +9,26 @@ from .enums import UserRole, Genders, Actions, EntryTypes, ResetVerificationMeth
 
 class UserBase(BaseModel):
     email: EmailStr
-    first_name: str = Field(min_length=1, max_length=50)
-    last_name: str = Field(min_length=1, max_length=50)
+    first_name: str = Field(min_length=1, max_length=100)
+    last_name: str = Field(min_length=1, max_length=100)
     profile_picture: Optional[str] = Field(default=None)
     role: UserRole = Field(default = UserRole.PROVIDER)
-    facility_name: str = Field(min_length=1, max_length=50)
-    facility_address: Optional[str] = Field(default=None, min_length=1, max_length=100)
-    license_number: Optional[str] = Field(default=None, min_length=1, max_length=25)
+    facility_name: str = Field(min_length=1, max_length=200)
+    facility_address: Optional[str] = Field(default=None, min_length=1, max_length=255)
+    license_number: Optional[str] = Field(default=None, min_length=1, max_length=50)
 
 class UserCreate(UserBase):
     password: str = Field(min_length=8)
     pin: str = Field(min_length=5, max_length=5)
 
 class UserUpdateProfile(BaseModel):
-    first_name: Optional[str] = Field(default=None, min_length=1, max_length=50)
-    last_name: Optional[str] = Field(default=None, min_length=1, max_length=50)
+    first_name: Optional[str] = Field(default=None, min_length=1, max_length=100)
+    last_name: Optional[str] = Field(default=None, min_length=1, max_length=100)
     profile_picture: Optional[str] = Field(default=None)
     role: Optional[UserRole] = Field(default = None)
-    facility_name: Optional[str] = Field(default=None, min_length=1, max_length=50)
-    facility_address: Optional[str] = Field(default=None, min_length=1, max_length=100)
-    license_number: Optional[str] = Field(default=None, min_length=1, max_length=25)
+    facility_name: Optional[str] = Field(default=None, min_length=1, max_length=200)
+    facility_address: Optional[str] = Field(default=None, min_length=1, max_length=255)
+    license_number: Optional[str] = Field(default=None, min_length=1, max_length=50)
 
 class UserUpdateEmail(BaseModel):
     email: EmailStr
@@ -42,14 +42,14 @@ class UserUpdatePin(BaseModel):
 
 # Students
 class StudentBase(BaseModel):
-    first_name: str = Field(min_length=1, max_length=50)
-    last_name: str = Field(min_length=1, max_length=50)
-    nickname: Optional[str] = Field(default=None, min_length=1, max_length=50)
+    first_name: str = Field(min_length=1, max_length=100)
+    last_name: str = Field(min_length=1, max_length=100)
+    nickname: Optional[str] = Field(default=None, min_length=1, max_length=100)
     profile_picture: Optional[str] = Field(default=None)
     date_of_birth: datetime.date
     gender: Genders = Field(default=Genders.NA)
     medical_note: Optional[str] = Field(default=None, min_length=1, max_length=350)
-    state_id: Optional[str] = Field(default=None, min_length=1, max_length=25)
+    state_id: Optional[str] = Field(default=None, min_length=1, max_length=50)
 
 class GuardianLinkCreate(BaseModel):
     guardian_public_id: uuid.UUID
@@ -59,13 +59,13 @@ class StudentCreate(StudentBase):
     guardian_links: list[GuardianLinkCreate] = Field(default_factory=list)
 
 class StudentUpdate(BaseModel):
-    first_name: Optional[str] = Field(default=None, min_length=1, max_length=50)
-    last_name: Optional[str] = Field(default=None, min_length=1, max_length=50)
-    nickname: Optional[str] = Field(default=None, min_length=1, max_length=50)
+    first_name: Optional[str] = Field(default=None, min_length=1, max_length=100)
+    last_name: Optional[str] = Field(default=None, min_length=1, max_length=100)
+    nickname: Optional[str] = Field(default=None, min_length=1, max_length=100)
     profile_picture: Optional[str] = Field(default=None)
     date_of_birth: Optional[datetime.date] = Field(default=None)
     gender: Optional[Genders] = Field(default=None)
-    state_id: Optional[str] = Field(default=None, min_length=1, max_length=25)
+    state_id: Optional[str] = Field(default=None, min_length=1, max_length=50)
 
 class StudentUpdateMedicalNote(BaseModel):
     medical_note: Optional[str] = Field(default=None, min_length=1, max_length=350)
@@ -73,12 +73,12 @@ class StudentUpdateMedicalNote(BaseModel):
 
 # Guardians
 class GuardianBase(BaseModel):
-    first_name: str = Field(min_length=1, max_length=50)
-    last_name: str = Field(min_length=1, max_length=50)
+    first_name: str = Field(min_length=1, max_length=100)
+    last_name: str = Field(min_length=1, max_length=100)
     phone_number: PhoneNumber
     profile_picture: Optional[str] = Field(default=None)
     email: Optional[EmailStr] = Field(default=None)
-    residential_address: Optional[str] = Field(default=None, min_length=1, max_length=100)
+    residential_address: Optional[str] = Field(default=None, min_length=1, max_length=255)
 
 class StudentLinkCreate(BaseModel):
     student_public_id: uuid.UUID
@@ -89,11 +89,11 @@ class GuardianCreate(GuardianBase):
     student_links: list[StudentLinkCreate] = Field(default_factory=list)
 
 class GuardianUpdate(BaseModel):
-    first_name: Optional[str] = Field(default=None, min_length=1, max_length=50)
-    last_name: Optional[str] = Field(default=None, min_length=1, max_length=50)
+    first_name: Optional[str] = Field(default=None, min_length=1, max_length=100)
+    last_name: Optional[str] = Field(default=None, min_length=1, max_length=100)
     phone_number: Optional[PhoneNumber] = Field(default=None)
     email: Optional[EmailStr] = Field(default=None)
-    residential_address: Optional[str] = Field(default=None, min_length=1, max_length=100)
+    residential_address: Optional[str] = Field(default=None, min_length=1, max_length=255)
 
 class GuardianStudentLinksUpdate(BaseModel):
     add_student_public: list[uuid.UUID] = Field(default_factory=list)
@@ -159,16 +159,16 @@ class AttendanceLogNoteUpdate(BaseModel):
 # Responses
 class StudentLite(BaseModel):
     public_id: uuid.UUID
-    first_name: str = Field(min_length=1, max_length=50)
-    last_name: str = Field(min_length=1, max_length=50)
-    nickname: Optional[str] = Field(default=None, min_length=1, max_length=50)
+    first_name: str = Field(min_length=1, max_length=100)
+    last_name: str = Field(min_length=1, max_length=100)
+    nickname: Optional[str] = Field(default=None, min_length=1, max_length=100)
     profile_picture: Optional[str] = Field(default=None)
     model_config = ConfigDict(from_attributes=True)
 
 class GuardianLite(BaseModel):
     public_id: uuid.UUID
-    first_name: str = Field(min_length=1, max_length=50)
-    last_name: str = Field(min_length=1, max_length=50)
+    first_name: str = Field(min_length=1, max_length=100)
+    last_name: str = Field(min_length=1, max_length=100)
     phone_number: PhoneNumber
     profile_picture: Optional[str] = Field(default=None)
     model_config = ConfigDict(from_attributes=True)
@@ -224,7 +224,7 @@ class AttendanceLogResponse(BaseModel):
     entry_type: EntryTypes
     is_void: bool
     guardian_signature_url: Optional[str] = Field(default=None, max_length=512)
-    authorized_person_name: Optional[str] = Field(default=None, min_length=1, max_length=50)
+    authorized_person_name: Optional[str] = Field(default=None, min_length=1, max_length=200)
     created_at: datetime.datetime
     public_id: uuid.UUID
     student: StudentLite
@@ -232,7 +232,7 @@ class AttendanceLogResponse(BaseModel):
 
 class AttendanceDayStatusResponse(BaseModel):
     event_time: Optional[datetime.datetime] = Field(default=None)
-    authorized_person_name: Optional[str] = Field(default=None, min_length=1, max_length=50)
+    authorized_person_name: Optional[str] = Field(default=None, min_length=1, max_length=200)
     current_status: AttendanceStatus
 
 class AttendanceLogNoteResponse(BaseModel):
