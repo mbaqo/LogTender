@@ -97,7 +97,7 @@ class GuardianUpdate(BaseModel):
 
 class GuardianStudentLinksUpdate(BaseModel):
     add_student_public: list[uuid.UUID] = Field(default_factory=list)
-    remove_student_public_ids: list[uuid.UUID]
+    remove_student_public_ids: list[uuid.UUID] = Field(default_factory=list)
 
 # Guardian Pin Actions
 class GuardianPinResetRequest(BaseModel):
@@ -110,15 +110,12 @@ class GuardianPinResetVerify(BaseModel):
 
 class GuardianPinResetComplete(BaseModel):
     reset_public_id: uuid.UUID
-    new_code: str = Field(min_length=5, max_length=5)
+    new_pin: str = Field(min_length=5, max_length=5)
 
 class AttendanceLogBase(BaseModel):
     student_public_id: uuid.UUID
-    provider_public_id: uuid.UUID
     # Event time should be the created_at (now)
     # for check-in/out
-    event_time: datetime.datetime
-    guardian_public_id: uuid.UUID
     guardian_signature_url: str = Field(max_length=512)
     authorized_person_name: str = Field(min_length=1, max_length=50)
 
@@ -134,24 +131,30 @@ class AttendanceMarkAbsentCreate(BaseModel):
     action: Literal[Actions.ABSENT] = Actions.ABSENT
     entry_type: Literal[EntryTypes.PROVIDER] = EntryTypes.PROVIDER
     student_public_id: uuid.UUID
-    provider_public_id: uuid.UUID
 
 class AttendanceManualEntryCreate(BaseModel):
     student_public_id: uuid.UUID
-    provider_public_id: uuid.UUID
     event_time: datetime.datetime
-    entry_type: EntryTypes = EntryTypes.PROVIDER
-    action: Actions
+    entry_type: Literal[EntryTypes.PROVIDER] = EntryTypes.PROVIDER
+    action: Literal[Actions.CHECK_IN, Actions.CHECK_OUT]
 
 class AttendanceCorrection(BaseModel):
     student_public_id: uuid.UUID
-    provider_public_id: uuid.UUID
     event_time: datetime.datetime
-    entry_type: EntryTypes = EntryTypes.PROVIDER
-    action: Actions
+    entry_type: Literal[EntryTypes.PROVIDER] = EntryTypes.PROVIDER
+    action: Literal[Actions.CHECK_IN, Actions.CHECK_OUT]
     # Remember to mark as void
     original_log_public_id: uuid.UUID
 
+class AttendanceLogNoteBase(BaseModel):
+    attendance_date: datetime.date
+    note: str = Field(min_length=1)
+
+class AttendanceLogNoteCreate(AttendanceLogNoteBase):
+    student_public_id: uuid.UUID
+
+class AttendanceLogNoteUpdate(BaseModel):
+    note: Optional[str] = Field(default=None, min_length=1)
 
 # Responses
 class StudentLite(BaseModel):
@@ -214,19 +217,26 @@ class GuardianPinResetResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class AttendanceLogResponse(BaseModel):
-    student_public_id: uuid.UUID
     # Event time should be the created_at (now)
     # for check-in/out
     event_time: Optional[datetime.datetime] = Field(default=None)
-    guardian_public_id: Optional[uuid.UUID] = Field(default=None)
+    action: Actions
+    entry_type: EntryTypes
+    is_void: bool
     guardian_signature_url: Optional[str] = Field(default=None, max_length=512)
     authorized_person_name: Optional[str] = Field(default=None, min_length=1, max_length=50)
     created_at: datetime.datetime
     public_id: uuid.UUID
-    original_log_public_id: Optional[uuid.UUID]
     student: StudentLite
+    model_config = ConfigDict(from_attributes=True)
 
 class AttendanceDayStatusResponse(BaseModel):
     event_time: Optional[datetime.datetime] = Field(default=None)
     authorized_person_name: Optional[str] = Field(default=None, min_length=1, max_length=50)
     current_status: AttendanceStatus
+
+class AttendanceLogNoteResponse(BaseModel):
+    public_id: uuid.UUID
+    attendance_date: datetime.date
+    note: Optional[str] = None
+    model_config = ConfigDict(from_attributes=True)
