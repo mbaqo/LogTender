@@ -3,9 +3,9 @@ import uuid
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from pydantic_extra_types.phone_numbers import PhoneNumber
-from typing import Optional
+from typing import Literal, Optional
 
-from .enums import UserRole, Genders, Actions, EntryTypes, ResetVerificationMethods, ResetStatuses
+from .enums import UserRole, Genders, Actions, EntryTypes, ResetVerificationMethods, ResetStatuses, AttendanceStatus
 
 class UserBase(BaseModel):
     email: EmailStr
@@ -112,6 +112,47 @@ class GuardianPinResetComplete(BaseModel):
     reset_public_id: uuid.UUID
     new_code: str = Field(min_length=5, max_length=5)
 
+class AttendanceLogBase(BaseModel):
+    student_public_id: uuid.UUID
+    provider_public_id: uuid.UUID
+    # Event time should be the created_at (now)
+    # for check-in/out
+    event_time: datetime.datetime
+    guardian_public_id: uuid.UUID
+    guardian_signature_url: str = Field(max_length=512)
+    authorized_person_name: str = Field(min_length=1, max_length=50)
+
+class AttendanceCheckInCreate(AttendanceLogBase): 
+    action: Literal[Actions.CHECK_IN] = Actions.CHECK_IN
+    entry_type: Literal[EntryTypes.GUARDIAN] = EntryTypes.GUARDIAN
+
+class AttendanceCheckOutCreate(AttendanceLogBase):
+    action: Literal[Actions.CHECK_OUT] = Actions.CHECK_OUT
+    entry_type: Literal[EntryTypes.GUARDIAN] = EntryTypes.GUARDIAN
+
+class AttendanceMarkAbsentCreate(BaseModel):
+    action: Literal[Actions.ABSENT] = Actions.ABSENT
+    entry_type: Literal[EntryTypes.PROVIDER] = EntryTypes.PROVIDER
+    student_public_id: uuid.UUID
+    provider_public_id: uuid.UUID
+
+class AttendanceManualEntryCreate(BaseModel):
+    student_public_id: uuid.UUID
+    provider_public_id: uuid.UUID
+    event_time: datetime.datetime
+    entry_type: EntryTypes = EntryTypes.PROVIDER
+    action: Actions
+
+class AttendanceCorrection(BaseModel):
+    student_public_id: uuid.UUID
+    provider_public_id: uuid.UUID
+    event_time: datetime.datetime
+    entry_type: EntryTypes = EntryTypes.PROVIDER
+    action: Actions
+    # Remember to mark as void
+    original_log_public_id: uuid.UUID
+
+
 # Responses
 class StudentLite(BaseModel):
     public_id: uuid.UUID
@@ -129,6 +170,12 @@ class GuardianLite(BaseModel):
     profile_picture: Optional[str] = Field(default=None)
     model_config = ConfigDict(from_attributes=True)
 
+class AttendanceLogLite(BaseModel):
+    public_id: uuid.UUID
+    created_at: datetime.datetime
+    event_time: Optional[datetime.datetime] = Field(default=None)
+    model_config = ConfigDict(from_attributes=True)
+
 class StudentGuardianLinkResponse(BaseModel):
     guardian: GuardianLite
     relationship_to_student: str
@@ -142,6 +189,7 @@ class GuardianStudentLinkResponse(BaseModel):
 class StudentResponse(StudentBase):
     public_id: uuid.UUID
     guardian_links: list[StudentGuardianLinkResponse] = Field(default_factory=list)
+    # List for that day
     attendance_logs: list[AttendanceLogLite] = Field(default_factory=list)
     model_config = ConfigDict(from_attributes=True)
 
@@ -164,3 +212,21 @@ class GuardianPinResetResponse(BaseModel):
     verified_at: Optional[datetime.datetime] = None
     guardian: GuardianLite
     model_config = ConfigDict(from_attributes=True)
+
+class AttendanceLogResponse(BaseModel):
+    student_public_id: uuid.UUID
+    # Event time should be the created_at (now)
+    # for check-in/out
+    event_time: Optional[datetime.datetime] = Field(default=None)
+    guardian_public_id: Optional[uuid.UUID] = Field(default=None)
+    guardian_signature_url: Optional[str] = Field(default=None, max_length=512)
+    authorized_person_name: Optional[str] = Field(default=None, min_length=1, max_length=50)
+    created_at: datetime.datetime
+    public_id: uuid.UUID
+    original_log_public_id: Optional[uuid.UUID]
+    student: StudentLite
+
+class AttendanceDayStatusResponse(BaseModel):
+    event_time: Optional[datetime.datetime] = Field(default=None)
+    authorized_person_name: Optional[str] = Field(default=None, min_length=1, max_length=50)
+    current_status: AttendanceStatus

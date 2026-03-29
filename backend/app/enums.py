@@ -26,3 +26,8 @@ class ResetVerificationMethods(str, PyEnum):
 class ResetStatuses(str, PyEnum):
     PENDING = "pending"
     VERIFIED = "verified"
+
+class AttendanceStatus(str, PyEnum):
+    CAN_CHECK_IN = "can_check_in"
+    CAN_CHECK_OUT = "can_check_out"
+    IS_ABSENT = "is_absent"

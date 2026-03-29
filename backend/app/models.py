@@ -2,7 +2,7 @@ import uuid
 import datetime
 from typing import Optional
 
-from sqlalchemy import String, Enum as SQLEnum, UUID, ForeignKey, DateTime, Text
+from sqlalchemy import Date, String, Enum as SQLEnum, UUID, ForeignKey, DateTime, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from .database import Base
@@ -146,6 +146,7 @@ class AttendanceLog(Base):
     __tablename__ = "attendance_logs"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    public_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, index=True)
     
     # Multi-tenancy
     provider_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
@@ -160,7 +161,7 @@ class AttendanceLog(Base):
     )
     
     # event_time: The actual time of arrival/departure
-    event_time: Mapped[datetime.datetime] = mapped_column(
+    event_time: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime(timezone=True), index=True
     )
 
@@ -168,12 +169,11 @@ class AttendanceLog(Base):
     entry_type: Mapped[EntryTypes] = mapped_column(SQLEnum(EntryTypes), default=EntryTypes.GUARDIAN)
     
     # Snapshot of the person's name for historical accuracy
-    authorized_person_name: Mapped[str] = mapped_column(String(200))
+    authorized_person_name: Mapped[Optional[str]] = mapped_column(String(200))
     
     # 2. Compliance & Media
     # URL to the signature image stored in cloud storage
     guardian_signature_url: Mapped[Optional[str]] = mapped_column(String(512)) 
-    note: Mapped[Optional[str]] = mapped_column(Text)
 
     # 3. The Audit Trail (Handling Edits)
     is_void: Mapped[bool] = mapped_column(default=False)
@@ -184,3 +184,17 @@ class AttendanceLog(Base):
     # Relationships
     student: Mapped["Student"] = relationship(back_populates="attendance_logs")
     guardian: Mapped[Optional["Guardian"]] = relationship(back_populates="attendance_logs")
+
+class AttendanceLogNote(Base):
+    __tablename__ = "attendance_notes"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    public_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, index=True)
+
+    provider_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    student_id: Mapped[int] = mapped_column(ForeignKey("students.id"), index=True)
+
+    attendance_date: Mapped[datetime.date] = mapped_column(
+        Date, index=True
+    )
+    note: Mapped[Optional[str]] = mapped_column(Text)
