@@ -16,7 +16,7 @@ class User(Base):
     public_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, index=True)
     
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
-    hash_password: Mapped[str] = mapped_column(String(255))
+    hashed_password: Mapped[str] = mapped_column(String(255))
     hashed_pin: Mapped[str] = mapped_column(String(255))
 
     first_name: Mapped[str] = mapped_column(String(100))

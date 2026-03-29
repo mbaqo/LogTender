@@ -7,3 +7,5 @@ pydantic
 pydantic-extra-types
 email-validator
 pydantic-settings
+bcrypt
+phonenumbers
