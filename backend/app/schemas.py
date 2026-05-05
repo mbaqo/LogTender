@@ -91,6 +91,7 @@ class GuardianCreate(GuardianBase):
 class GuardianUpdate(BaseModel):
     first_name: Optional[str] = Field(default=None, min_length=1, max_length=100)
     last_name: Optional[str] = Field(default=None, min_length=1, max_length=100)
+    profile_picture: Optional[str] = Field(default=None)
     phone_number: Optional[PhoneNumber] = Field(default=None)
     email: Optional[EmailStr] = Field(default=None)
     residential_address: Optional[str] = Field(default=None, min_length=1, max_length=255)
