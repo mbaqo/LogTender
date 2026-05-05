@@ -9,6 +9,7 @@ LogTender is a high-performance daycare attendance platform designed for fast gu
 - Event-based attendance architecture for immutable history and corrections.
 - Provider dashboard model for live attendance state and daily operations.
 - Compliance-oriented audit data design, including event timestamps and signature support.
+- Alembic migrations configured for schema tracking.
 
 ## Performance Goals
 - Check-in/check-out interaction under 10 seconds.
