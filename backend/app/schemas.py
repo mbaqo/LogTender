@@ -19,7 +19,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str = Field(min_length=8)
-    pin: str = Field(min_length=5, max_length=5)
+    pin: str = Field(min_length=5, max_length=5, pattern=r"^\d{5}$")
 
 class UserUpdateProfile(BaseModel):
     first_name: Optional[str] = Field(default=None, min_length=1, max_length=100)
@@ -37,7 +37,7 @@ class UserUpdatePassword(BaseModel):
     password: str = Field(min_length=8)
 
 class UserUpdatePin(BaseModel):
-    pin: str = Field(min_length=5, max_length=5)
+    pin: str = Field(min_length=5, max_length=5, pattern=r"^\d{5}$")
 
 
 # Students
@@ -85,7 +85,7 @@ class StudentLinkCreate(BaseModel):
     relationship_to_student: str = Field(min_length=1, max_length=50)
 
 class GuardianCreate(GuardianBase):
-    pin: str = Field(min_length=5, max_length=5)
+    pin: str = Field(min_length=5, max_length=5, pattern=r"^\d{5}$")
     student_links: list[StudentLinkCreate] = Field(default_factory=list)
 
 class GuardianUpdate(BaseModel):
@@ -107,11 +107,11 @@ class GuardianPinResetRequest(BaseModel):
 
 class GuardianPinResetVerify(BaseModel):
     reset_public_id: uuid.UUID
-    code: str = Field(min_length=5, max_length=5)
+    code: str = Field(min_length=5, max_length=5, pattern=r"^\d{5}$")
 
 class GuardianPinResetComplete(BaseModel):
     reset_public_id: uuid.UUID
-    new_pin: str = Field(min_length=5, max_length=5)
+    new_pin: str = Field(min_length=5, max_length=5, pattern=r"^\d{5}$")
 
 class AttendanceLogBase(BaseModel):
     student_public_id: uuid.UUID
