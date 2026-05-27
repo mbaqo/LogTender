@@ -1,5 +1,6 @@
 import uuid
 import pytest
+from pydantic import ValidationError
 
 from sqlalchemy.exc import IntegrityError
 
@@ -67,3 +68,20 @@ def test_duplicate_email_raises_integrityerror_on_commit(db_session):
 
     # Reset session state after expected DB error so teardown is clean.
     db_session.rollback()
+
+def test_user_pin_letters_rejected():
+    with pytest.raises(ValidationError):
+        schemas.UserCreate(
+            email="dupe@example.com",
+            first_name="A",
+            last_name="B",
+            profile_picture=None,
+            role=UserRole.PROVIDER,
+            facility_name="X",
+            facility_address=None,
+            license_number=None,
+            password="testpassword",
+            pin="abcde",
+        )
+
+    
