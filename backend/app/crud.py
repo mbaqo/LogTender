@@ -16,6 +16,8 @@
 #     return db_user
 
 import bcrypt
+import uuid
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from . import models, schemas
@@ -24,6 +26,10 @@ def hash_secret(secret: str) -> str:
     """Hash a secret (password/PIN) using bcrypt."""
     hashed = bcrypt.hashpw(secret.encode("utf-8"), bcrypt.gensalt(rounds=12))
     return hashed.decode("utf-8")
+
+def verify_secret(plain: str, hashed: str) -> bool:
+    """Verify a plain secret against a bcrypt hash."""
+    return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
 
 def create_user(db: Session, user: schemas.UserCreate) -> models.User:
     db_user = models.User(
@@ -46,3 +52,17 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.User:
     # available to the caller within the ongoing transaction.
     db.flush()
     return db_user
+
+def get_user(db: Session, user_id: int) -> models.User | None:
+    """Return one user by internal database id."""
+    return db.get(models.User, user_id)
+
+def get_user_by_public_id(db: Session, public_id: uuid.UUID) -> models.User | None:
+    """Return one user by stable public id."""
+    statement = select(models.User).where(models.User.public_id == public_id)
+    return db.scalars(statement).one_or_none()
+
+def get_user_by_email(db: Session, email: str) -> models.User | None:
+    """Return one user by unique email address."""
+    statement = select(models.User).where(models.User.email == email.lower())
+    return db.scalars(statement).one_or_none()

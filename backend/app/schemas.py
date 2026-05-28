@@ -1,7 +1,7 @@
 import datetime
 import uuid
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from pydantic_extra_types.phone_numbers import PhoneNumber
 from typing import Literal, Optional
 
@@ -16,6 +16,11 @@ class UserBase(BaseModel):
     facility_name: str = Field(min_length=1, max_length=200)
     facility_address: Optional[str] = Field(default=None, min_length=1, max_length=255)
     license_number: Optional[str] = Field(default=None, min_length=1, max_length=50)
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: str) -> str:
+        return value.lower()
 
 class UserCreate(UserBase):
     password: str = Field(min_length=8)
@@ -32,6 +37,11 @@ class UserUpdateProfile(BaseModel):
 
 class UserUpdateEmail(BaseModel):
     email: EmailStr
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: str) -> str:
+        return value.lower()
 
 class UserUpdatePassword(BaseModel):
     password: str = Field(min_length=8)
