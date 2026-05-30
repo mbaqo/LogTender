@@ -17,20 +17,29 @@ load_dotenv(REPO_ROOT / ".env")
 os.environ.setdefault("DB_USER", "test")
 os.environ.setdefault("DB_PASSWORD", "test")
 os.environ.setdefault("DB_NAME", "logtender_test")
-os.environ.setdefault("DATABASE_URL", "sqlite+pysqlite:///:memory:")
 os.environ.setdefault("BCRYPT_ROUNDS", "4")
+
+
+_DATABASE_URL_TEST = os.getenv("DATABASE_URL_TEST")
+if not _DATABASE_URL_TEST:
+    raise RuntimeError(
+        "DATABASE_URL_TEST is required for backend tests. "
+        "Point it at a dedicated PostgreSQL test database."
+    )
+
+# Make the application import the same test database URL the test suite uses.
+os.environ["DATABASE_URL"] = _DATABASE_URL_TEST
 
 
 def _get_test_database_url() -> str:
     """
-    Prefer DATABASE_URL_TEST for isolation. If it is not configured, use an
-    in-memory SQLite database so unit-level CRUD tests still run locally.
-    """
-    url_test = os.getenv("DATABASE_URL_TEST")
-    if url_test:
-        return url_test
+    Require a dedicated PostgreSQL test database.
 
-    return "sqlite+pysqlite:///:memory:"
+    The test suite must not silently fall back to SQLite because that can hide
+    Postgres-specific behavior and make the suite look green against the wrong
+    storage engine.
+    """
+    return _DATABASE_URL_TEST
 
 
 @pytest.fixture(scope="session")
@@ -43,7 +52,7 @@ def engine():
     database_url = _get_test_database_url()
 
     # Ensure app config loads with a database URL even when .env is absent.
-    os.environ.setdefault("DATABASE_URL", database_url)
+    os.environ["DATABASE_URL"] = database_url
 
     if database_url.startswith("sqlite"):
         eng = create_engine(

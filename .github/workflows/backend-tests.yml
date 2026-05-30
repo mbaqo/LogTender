@@ -32,6 +32,7 @@ jobs:
       DB_PASSWORD: logtender
       DB_NAME: logtender_test
       DATABASE_URL: postgresql+psycopg2://logtender:logtender@localhost:5432/logtender_test
+      DATABASE_URL_TEST: postgresql+psycopg2://logtender:logtender@localhost:5432/logtender_test
 
     steps:
       - uses: actions/checkout@v4
