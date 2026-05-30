@@ -16,4 +16,16 @@ FastAPI backend for LogTender with SQLAlchemy models, Pydantic schemas, and Alem
 ## Status
 - Schemas finalized (`app/schemas.py`).
 - Alembic configured (`alembic/env.py`, `alembic.ini`).
-- CRUD layer and automated tests are next.
+- CRUD foundation implemented for users, students, guardians, attendance, notes, and guardian PIN resets.
+- Automated CRUD tests are available under `app/tests/`.
+
+## Tests
+Run the backend test suite:
+```bash
+pytest
+```
+
+By default, tests use an isolated in-memory SQLite database for fast local feedback.
+Set `DATABASE_URL_TEST` to run the same CRUD tests against a dedicated PostgreSQL test database.
+
+Attendance days use `ATTENDANCE_TIMEZONE`, defaulting to `America/Los_Angeles`.

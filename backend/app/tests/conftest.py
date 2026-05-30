@@ -2,42 +2,35 @@ import os
 from pathlib import Path
 
 import pytest
+from sqlalchemy.exc import OperationalError
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import NullPool
+from sqlalchemy.pool import StaticPool
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 load_dotenv(REPO_ROOT / ".env")
 
+# Keep tests importable even when a developer has not created a local .env yet.
+os.environ.setdefault("DB_USER", "test")
+os.environ.setdefault("DB_PASSWORD", "test")
+os.environ.setdefault("DB_NAME", "logtender_test")
+os.environ.setdefault("DATABASE_URL", "sqlite+pysqlite:///:memory:")
+os.environ.setdefault("BCRYPT_ROUNDS", "4")
+
 
 def _get_test_database_url() -> str:
     """
-    Prefer DATABASE_URL_TEST for isolation.
-
-    Safety: we refuse to run against DATABASE_URL unless you explicitly opt in
-    by setting ALLOW_TESTS_ON_DATABASE_URL=1.
+    Prefer DATABASE_URL_TEST for isolation. If it is not configured, use an
+    in-memory SQLite database so unit-level CRUD tests still run locally.
     """
     url_test = os.getenv("DATABASE_URL_TEST")
     if url_test:
         return url_test
 
-    url_default = os.getenv("DATABASE_URL")
-    if not url_default:
-        pytest.skip(
-            "No DATABASE_URL_TEST or DATABASE_URL set. "
-            "Set DATABASE_URL_TEST to an empty Postgres test database."
-        )
-
-    if os.getenv("ALLOW_TESTS_ON_DATABASE_URL") != "1":
-        pytest.skip(
-            "Refusing to run tests against DATABASE_URL. "
-            "Set DATABASE_URL_TEST to a dedicated test database, or set "
-            "ALLOW_TESTS_ON_DATABASE_URL=1 if you understand the risk."
-        )
-
-    return url_default
+    return "sqlite+pysqlite:///:memory:"
 
 
 @pytest.fixture(scope="session")
@@ -52,7 +45,14 @@ def engine():
     # Ensure app config loads with a database URL even when .env is absent.
     os.environ.setdefault("DATABASE_URL", database_url)
 
-    eng = create_engine(database_url, poolclass=NullPool)
+    if database_url.startswith("sqlite"):
+        eng = create_engine(
+            database_url,
+            connect_args={"check_same_thread": False},
+            poolclass=StaticPool,
+        )
+    else:
+        eng = create_engine(database_url, poolclass=NullPool)
     yield eng
     eng.dispose()
 
@@ -68,7 +68,10 @@ def create_test_schema(engine):
     from app.database import Base  # imported after env is set
     from app import models  # noqa: F401  (register models with Base)
 
-    Base.metadata.create_all(bind=engine)
+    try:
+        Base.metadata.create_all(bind=engine)
+    except OperationalError as exc:
+        pytest.skip(f"Test database is not reachable: {exc}")
     yield
     Base.metadata.drop_all(bind=engine)
 

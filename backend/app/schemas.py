@@ -107,7 +107,7 @@ class GuardianUpdate(BaseModel):
     residential_address: Optional[str] = Field(default=None, min_length=1, max_length=255)
 
 class GuardianStudentLinksUpdate(BaseModel):
-    add_student_public: list[uuid.UUID] = Field(default_factory=list)
+    add_student_public_ids: list[uuid.UUID] = Field(default_factory=list)
     remove_student_public_ids: list[uuid.UUID] = Field(default_factory=list)
 
 # Guardian Pin Actions

@@ -2,7 +2,7 @@ import uuid
 import datetime
 from typing import Optional
 
-from sqlalchemy import Date, String, Enum as SQLEnum, UUID, ForeignKey, DateTime, Text
+from sqlalchemy import Date, String, Enum as SQLEnum, UUID, ForeignKey, DateTime, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from .database import Base
@@ -126,6 +126,10 @@ class GuardianPinReset(Base):
     status: Mapped[ResetStatuses] = mapped_column(SQLEnum(ResetStatuses), default=ResetStatuses.PENDING)
 
     reset_code_hash: Mapped[str] = mapped_column(String(255))
+    failed_verification_attempts: Mapped[int] = mapped_column(default=0)
+    locked_at: Mapped[Optional[datetime.datetime]] = mapped_column(
+        DateTime(timezone=True), default=None
+    )
     verified_at: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime(timezone=True), default=None
     )
@@ -187,6 +191,13 @@ class AttendanceLog(Base):
 
 class AttendanceLogNote(Base):
     __tablename__ = "attendance_notes"
+    __table_args__ = (
+        UniqueConstraint(
+            "student_id",
+            "attendance_date",
+            name="uq_attendance_notes_student_date",
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     public_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, index=True)
