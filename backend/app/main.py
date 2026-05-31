@@ -1,62 +1,34 @@
-from enum import Enum
-from pydantic import BaseModel
-
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-class Item(BaseModel):
-    name: str
-    description: str | None = None
-    price: float
-    tax: float | None = None
-
-app = FastAPI()
-
-@app.post("/items/")
-async def create_item(item: Item):
-    return item
+from .api.router import api_router
 
 
+app = FastAPI(
+    title="LogTender API",
+    version="0.1.0",
+)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
+app.include_router(api_router)
 
+#  Recommended route placement going forward:
 
+#   - Put HTTP endpoints in backend/app/api/routes/
+#   - Keep one file per domain:
+#       - users.py
+#       - students.py
+#       - guardians.py
+#       - attendance.py
+#       - pin_resets.py
 
-
-
-
-
-
-
-
-# @app.get("/")
-# async def root():
-#     return {"message": "Hello World"}
-
-# @app.get("/items/{item_id}")
-# async def read_item(item_id):
-#     return {"item_id": item_id}
-# @app.get("/items/{item_id}")
-# async def read_item(item_id: int):
-#     return {"item_id": item_id}
-
-# # PREDEFINED VALUES with path parameter
-# class ModelName(str, Enum):
-#     alexnet = "alexnet"
-#     resnet = "resnet"
-#     lenet = "lenet"
-
-# @app.get("/models/{model_name}")
-# async def get_model(model_name: ModelName):
-#     if model_name is ModelName.alexnet:
-#         return {"model_name": model_name, "message": "Deep Learning FTW!"}
-
-#     if model_name.value == "lenet":
-#         return {"model_name": model_name, "message": "LeCNN all the images"}
-
-#     return {"model_name": model_name, "message": "Have some residuals"}
-
-
-# # PATH PARAMETER THAT CONTAINS A PATH
-# @app.get("/files/{file_path:path}")
-# async def read_file(file_path: str):
-#     return {"file_path": file_path}
+#   - Keep shared router aggregation in backend/app/api/router.py
+#   - Keep FastAPI app wiring in backend/app/main.py
+#   - Keep database logic in backend/app/crud.py
